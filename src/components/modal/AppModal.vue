@@ -9,6 +9,7 @@
       </header>
 
       <slot></slot>
+
       <footer class="app-modal-footer">
         <slot name="footer">
           <button type="button" class="btn-green" @click="save">Save</button>
@@ -25,23 +26,32 @@ import { Component, Vue, Prop, Emit, Watch } from "vue-property-decorator";
 export default class AppModal extends Vue {
   @Prop() private value!: boolean;
   @Prop() private stayOpen!: boolean;
+  @Prop() private title!: string;
 
   private isVisible: boolean = this.value;
-  private title: string = "";
+  
+  @Watch("value")
+  private onValueChange(newVal: boolean) {
+    this.isVisible = newVal;
+    this.emitVisibilityChange(newVal);
+  }
 
   @Emit()
   private close(): boolean {
+    this.$emit("close");
     this.isVisible = false;
     this.emitInput(false);
     this.emitVisibilityChange(false);
-    this.$emit("close");
     return false;
   }
 
   private save(): void {
+    // go ahead and emit the save event.
+    // if we are supposed to stay open then go ahead and return.
+    // user will handle closing the modal automatically.
     this.$emit("save");
     if (this.stayOpen) {
-      return;
+    return;
     }
 
     this.isVisible = false;
@@ -55,16 +65,6 @@ export default class AppModal extends Vue {
 
   private emitInput(value: boolean): void {
     this.$emit("input", value);
-  }
-
-  @Watch("value")
-  private onValueChange(newVal: boolean) {
-    this.isVisible = newVal;
-  }
-
-  @Watch("isVisible")
-  private onVisibleChange(newVal: boolean) {
-    this.emitVisibilityChange(newVal);
   }
 }
 </script>
